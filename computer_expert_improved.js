@@ -14,46 +14,51 @@
 // if a result in seconds is ab.xy... it will be given truncated as ab.
 // if the given string is "" you will return ""
 
+
+
+
+function parseTeamRawData(arg) {
+  return arg
+    .split(', ')
+    .map(item => item
+      .split('|')
+      .reduceRight( (sum, current, index) => sum + (current)*60**(2-index), 0))
+    .sort( (a, b) => a - b );
+}
+
+function calculateTeamAnalytics(arg) {
+  let rangeInSec = arg[arg.length - 1] - arg[0];
+  let averageInSec = Math.trunc(arg.reduce((sum, current) => sum + current) / (arg.length));
+  let medianInSec;
+  if (arg.length % 2 == 0) {
+    medianInSec = Math.trunc((arg[arg.length / 2] + arg[arg.length / 2 - 1]) / 2);
+  } else {
+    medianInSec = arg[(arg.length - 1) / 2];
+  }
+  return {
+    rangeInSec,
+    averageInSec,
+    medianInSec,
+  }
+}
+
+function formatAnalyticsString(arg) {
+  let h = Math.trunc(arg / 3600);
+  let m = Math.trunc((arg - h * 3600) / 60);
+  let s = arg - h * 3600 - m * 60;
+  if (h < 10) {h = '0' + h} else {h = '' + h};
+  if (m < 10) {m = '0' + m} else {m = '' + m};
+  if (s < 10) {s = '0' + s} else {s = '' + s};
+  return h + '|' + m + '|' + s;
+}
+
 function stat(strg) {
   if (strg == '') {
     return '';
   }
-
-  let parseTeamRawData = function(arg) {
-    return arg.split(', ').map(item => item.split('|').reduceRight(function(sum, current, index) {return sum + (current)*60**(2-index)}, 0)).sort( (a, b) => a - b );
-  }
-
   let totalSec = parseTeamRawData(strg);
-
-  let calculateTeamAnalytics = function(arg) {
-    let rangeInSec = arg[arg.length - 1] - arg[0];
-    let averageInSec = Math.trunc(arg.reduce((sum, current) => sum + current) / (totalSec.length));
-    let medianInSec;
-    if (arg.length % 2 == 0) {
-      medianInSec = Math.trunc((arg[arg.length / 2] + arg[arg.length / 2 - 1]) / 2);
-    } else {
-      medianInSec = arg[(arg.length - 1) / 2];
-    }
-    return object = {
-      rangeInSec,
-      averageInSec,
-      medianInSec,
-    }
-  }
-  calculateTeamAnalytics(totalSec);
-
-  let formatAnalyticsString = function(arg) {
-    let h = Math.trunc(arg / 3600);
-    let m = Math.trunc((arg - h * 3600) / 60);
-    let s = arg - h * 3600 - m * 60;
-    if (h < 10) {h = '0' + h} else {h = '' + h};
-    if (m < 10) {m = '0' + m} else {m = '' + m};
-    if (s < 10) {s = '0' + s} else {s = '' + s};
-    return h + '|' + m + '|' + s;
-  }
-
-  return 'Range: ' + formatAnalyticsString(object.rangeInSec)  + ' Average: ' + formatAnalyticsString(object.averageInSec) + ' Median: ' + formatAnalyticsString(object.medianInSec);
-
+  let resultInSec = calculateTeamAnalytics(totalSec);
+  return 'Range: ' + formatAnalyticsString(resultInSec.rangeInSec)  + ' Average: ' + formatAnalyticsString(resultInSec.averageInSec) + ' Median: ' + formatAnalyticsString(resultInSec.medianInSec);
 }
 
 console.log(stat("01|15|59, 1|47|16, 01|17|20, 1|32|34, 2|17|17"));
