@@ -15,34 +15,36 @@
 // if the given string is "" you will return ""
 
 
-
-
 function parseTeamRawData(arg) {
   return arg
     .split(', ')
+    .map(item => item.split('|'));
+}
+
+function calculateTeamAnalytics(arg) {
+  return arg
     .map(item => item
-      .split('|')
       .reduceRight( (sum, current, index) => sum + (current)*60**(2-index), 0))
     .sort( (a, b) => a - b );
 }
 
-function calculateTeamAnalytics(arg) {
-  let rangeInSec = arg[arg.length - 1] - arg[0];
-  let averageInSec = Math.trunc(arg.reduce((sum, current) => sum + current) / (arg.length));
-  let medianInSec;
+function calculateTeamRange(arg) {
+  return arg[arg.length - 1] - arg[0];
+}
+
+function calculateTeamAverage(arg) {
+  return Math.trunc(arg.reduce((sum, current) => sum + current) / (arg.length));
+}
+
+function calculateTeamMedian(arg) {
   if (arg.length % 2 == 0) {
-    medianInSec = Math.trunc((arg[arg.length / 2] + arg[arg.length / 2 - 1]) / 2);
+    return Math.trunc((arg[arg.length / 2] + arg[arg.length / 2 - 1]) / 2);
   } else {
-    medianInSec = arg[(arg.length - 1) / 2];
-  }
-  return {
-    rangeInSec,
-    averageInSec,
-    medianInSec,
+    return arg[(arg.length - 1) / 2];
   }
 }
 
-function formatAnalyticsString(arg) {
+function formatTimeString(arg) {
   let h = Math.trunc(arg / 3600);
   let m = Math.trunc((arg - h * 3600) / 60);
   let s = arg - h * 3600 - m * 60;
@@ -52,13 +54,16 @@ function formatAnalyticsString(arg) {
   return h + '|' + m + '|' + s;
 }
 
-function stat(strg) {
+function formatAnalyticsString(strg) {
   if (strg == '') {
     return '';
   }
-  let totalSec = parseTeamRawData(strg);
-  let resultInSec = calculateTeamAnalytics(totalSec);
-  return 'Range: ' + formatAnalyticsString(resultInSec.rangeInSec)  + ' Average: ' + formatAnalyticsString(resultInSec.averageInSec) + ' Median: ' + formatAnalyticsString(resultInSec.medianInSec);
+  let parseData = parseTeamRawData(strg);
+  let resultInSec = calculateTeamAnalytics(parseData);
+  let rangeInSec = calculateTeamRange(resultInSec);
+  let averageInSec = calculateTeamAverage(resultInSec);
+  let medianInSec = calculateTeamMedian(resultInSec);
+  return 'Range: ' + formatTimeString(rangeInSec)  + ' Average: ' + formatTimeString(averageInSec) + ' Median: ' + formatTimeString(medianInSec);
 }
 
-console.log(stat("01|15|59, 1|47|16, 01|17|20, 1|32|34, 2|17|17"));
+console.log(formatAnalyticsString("01|15|59, 1|47|16, 01|17|20, 1|32|34, 2|17|17"));
